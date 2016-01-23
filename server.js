@@ -1,7 +1,11 @@
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser');
 var PORT = process.env.PORT || 3000;
-var todos = require('./todos.js');
+var todos = [];
+var todoNextId = 1;
+
+app.use(bodyParser.json());
 
 app.get('/', (req,res) => {
   res.send("TODO api Root");
@@ -13,7 +17,6 @@ app.get('/todos', (req,res) => {
 });
 
 //GET /todo/:id
-
 app.get('/todos/:id', (req,res) => {
   var todoId = parseInt(req.params.id, 10);
   var matchedTodo;
@@ -29,8 +32,15 @@ app.get('/todos/:id', (req,res) => {
   else {
     res.status(404).send(`No Matches found for id: ${todoId}`);
   }
-
 });
+
+// POST /todos/
+app.post('/todos', (req,res) => {
+  var todo = req.body;
+  todo.id = todoNextId++;
+  todos.push(todo);
+  res.json(todo);
+})
 
 app.listen(PORT, () => {
   console.log(`express is listening on port ${PORT}`);
