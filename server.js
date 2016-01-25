@@ -33,9 +33,9 @@ app.get('/todos/:id', (req,res) => {
 
 // POST /todos/
 app.post('/todos', (req,res) => {
-  var todo = _.pick(req.body, 'description', 'completed');
+  var todo = _.pick(req.body, 'description', 'done');
 
-  if (!(_.isBoolean(todo.completed)
+  if (!(_.isBoolean(todo.done)
   || _.isString(todo.description))
   || todo.description.trim().length === 0
   ) {
@@ -62,6 +62,36 @@ app.delete('/todos/:id', (req,res) => {
   }
 
 });
+
+// PUT /todos/:id
+app.put('/todos/:id', (req,res) => {
+  var body = _.pick(req.body, "description", "done");
+  var validAttributes = {};
+  var todoId = parseInt(req.params.id,10);
+  var matchedTodo = _.findWhere(todos, {id: todoId});
+
+  if (!matchedTodo) {
+    return res.status(404).send();
+  };
+
+  if (body.hasOwnProperty('done') && _.isBoolean(body.done)) {
+    validAttributes.done = body.done;
+  } else if (body.hasOwnProperty('done')) {
+    return res.status(400).send("Done was incorrect");
+  };
+
+  if (body.hasOwnProperty('description')
+  && _.isString(body.description)
+  && body.description.trim().length > 0) {
+    validAttributes.description = body.description;
+  } else if(body.hasOwnProperty('description')) {
+    return res.status(400).send("Description was incorrect");
+  }
+
+  // Things went right;
+  matchedTodo = _.extend(matchedTodo, validAttributes);
+  res.json(matchedTodo);
+})
 
 app.listen(PORT, () => {
   console.log(`express is listening on port ${PORT}`);
