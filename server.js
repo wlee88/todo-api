@@ -33,7 +33,8 @@ app.get('/todos/:id', (req,res) => {
 
 // POST /todos/
 app.post('/todos', (req,res) => {
-  var todo = req.body;
+  var todo = _.pick(req.body, 'description', 'completed');
+
   if (!(_.isBoolean(todo.completed)
   || _.isString(todo.description))
   || todo.description.trim().length === 0
@@ -42,6 +43,7 @@ app.post('/todos', (req,res) => {
   }
 
   todo.id = todoNextId++;
+  todo.description = todo.description.trim();
   todos.push(todo);
   res.json(todo);
 })
