@@ -17,19 +17,23 @@ app.get('/', (req,res) => {
 //   res.json(todos);
 // });
 
-//GET /todos?completed=true
+//GET /todos?completed=true&q=something
 
 app.get('/todos', (req, res) => {
   var queryParams = req.query;
-  var filteredTodos;
+  var filteredTodos = todos;
 
   if (queryParams.hasOwnProperty('completed')){
     if (queryParams.completed === 'true') {
-      filteredTodos = _.where(todos, { done: true});
+      filteredTodos = _.where(filteredTodos, { done: true});
     }
     else {
-      cfilteredTodos = _.where(todos, { done: false});
+      filteredTodos = _.where(filteredTodos, { done: false});
     }
+  }
+
+  if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+    filteredTodos = _.filter(filteredTodos, (todo) => { return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1 });
   }
   // if has property and completed is equal to true
   // ._where(filteredTodos, completed === true)
