@@ -13,13 +13,32 @@ app.get('/', (req,res) => {
 });
 
 //GET /todos
-app.get('/todos', (req,res) => {
-  res.json(todos);
-});
+// app.get('/todos', (req,res) => {
+//   res.json(todos);
+// });
 
+//GET /todos?completed=true
+
+app.get('/todos', (req, res) => {
+  var queryParams = req.query;
+  var filteredTodos;
+
+  if (queryParams.hasOwnProperty('completed')){
+    if (queryParams.completed === 'true') {
+      filteredTodos = _.where(todos, { done: true});
+    }
+    else {
+      cfilteredTodos = _.where(todos, { done: false});
+    }
+  }
+  // if has property and completed is equal to true
+  // ._where(filteredTodos, completed === true)
+  // else if (has property and completed is false)
+
+  res.json(filteredTodos);
+});
 //GET /todo/:id
 app.get('/todos/:id', (req,res) => {
-
   var todoId = parseInt(req.params.id, 10);
   var matchedTodo =  _.findWhere(todos, { id: todoId});
 
@@ -41,6 +60,7 @@ app.post('/todos', (req,res) => {
   ) {
     return res.status(400).send();
   }
+
 
   todo.id = todoNextId++;
   todo.description = todo.description.trim();
