@@ -150,6 +150,20 @@ app.put('/todos/:id', (req, res) => {
 
 });
 
+
+app.post('/users', (req,res) => {
+  var user = _.pick(req.body, "email", "password");
+  db.user.create(user)
+    .then(
+      () => {
+        res.json(user.toJSON());
+      },
+      (error) => {
+        res.status(400).json(error);
+      }
+  );
+});
+
 db.sequelize.sync().then(() => {
   app.listen(PORT, () => {
     console.log(`express is listening on port ${PORT}`);
