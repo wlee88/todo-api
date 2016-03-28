@@ -170,7 +170,14 @@ app.post('/users/login', (req,res) => {
   var fields = _.pick(req.body, 'email', 'password');
   db.user.authenticate(fields)
     .then(
-      (user) =>  { res.json(user.toPublicJSON()) },
+      (user) =>  {
+        var token =  user.generateToken('authentication');
+        if (token) {
+          res.header('Auth',token).json(user.toPublicJSON());
+        } else {
+          res.status(401).send();
+        };
+      }
       (error) => { res.status(401).json(error);}
     );
 });
