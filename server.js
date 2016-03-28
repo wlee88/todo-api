@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var PORT = process.env.PORT || 3000;
 var _ = require("underscore");
 var db = require("./db.js");
+var middleware = require('./middleware.js')(db);
 var todos = [];
 var todoNextId = 1;
 
@@ -22,7 +23,7 @@ app.get('/', (req, res) => {
 
 //GET /todos?completed=true&q=something
 
-app.get('/todos', (req, res) => {
+app.get('/todos', middleware.requireAuthentication, (req, res) => {
   var query = req.query;
   var where = {};
 
@@ -47,7 +48,7 @@ app.get('/todos', (req, res) => {
 
 });
 //GET /todo/:id
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', middleware.requireAuthentication, (req, res) => {
   var todoId = parseInt(req.params.id, 10);
   // var matchedTodo = _.findWhere(todos, {
   //   id: todoId
@@ -71,7 +72,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // POST /todos/
-app.post('/todos', (req, res) => {
+app.post('/todos', middleware.requireAuthentication, (req, res) => {
   var todo = _.pick(req.body, 'description', 'completed');
   //
   // if (!(_.isBoolean(todo.completed) || _.isString(todo.description)) || todo.description.trim().length === 0) {
@@ -79,7 +80,7 @@ app.post('/todos', (req, res) => {
   // }
   db.todo
     .create(todo)
-    .then(()=> {
+    .then((todo)=> {
       res.json(todo);
     }, (error) => {
       res.status(400).json(error)
@@ -87,7 +88,7 @@ app.post('/todos', (req, res) => {
 });
 
 // DELETE /todos/:id
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', middleware.requireAuthentication, (req, res) => {
   var todoId = parseInt(req.params.id, 10);
 
   db.todo.destroy({
@@ -122,7 +123,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // PUT /todos/:id
-app.put('/todos/:id', (req, res) => {
+app.put('/todos/:id', middleware.requireAuthentication, (req, res) => {
   var todoId = parseInt(req.params.id, 10);
   var body = _.pick(req.body, "description", "completed");
   var attributes = {};
@@ -177,7 +178,7 @@ app.post('/users/login', (req,res) => {
         } else {
           res.status(401).send();
         };
-      }
+      },
       (error) => { res.status(401).json(error);}
     );
 });

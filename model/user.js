@@ -2,6 +2,8 @@ var bcrypt = require('bcrypt');
 var _ = require('underscore');
 var cryptojs = require('crypto-js');
 var jwt = require('jsonwebtoken');
+var jwtPass = 'qwerty123';
+var cryptPass = 'abc123';
 
 module.exports = function(sequelize, DataTypes) {
   var user =  sequelize.define('user', {
@@ -51,10 +53,10 @@ module.exports = function(sequelize, DataTypes) {
             id: this.get('id'),
             type: type
           });
-          var encryptedData = cryptojs.AES.encrypt(stringData, 'abc123!@#').toString();
+          var encryptedData = cryptojs.AES.encrypt(stringData, cryptPass).toString();
           var token = jwt.sign({
             token: encryptedData
-            }, 'qwerty123'//jwt pass
+          }, jwtPass//jwt pass
           );
           return token;
         } catch(e) {
@@ -90,6 +92,29 @@ module.exports = function(sequelize, DataTypes) {
               return reject();
             }
         })
+      },
+      findByToken: function(token) {
+        return new Promise((resolve, reject) => {
+          try {
+            var decodedJWT = jwt.verify(token, jwtPass);
+            var bytes = cryptojs.AES.decrypt(decodedJWT.token, cryptPass);
+            var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+
+            user.findById(tokenData.id)
+              .then(
+                (user) => {
+                  if (user) {
+                    resolve(user)
+                  } else {
+                    return reject();
+                  }
+                },
+                (e) => { return reject() }
+              );
+          } catch(e) {
+            return reject();
+          }
+        });
       }
     },
     hooks: {
