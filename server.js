@@ -1,4 +1,5 @@
 var express = require('express');
+var bcrypt = require('bcrypt');
 var app = express();
 var bodyParser = require('body-parser');
 var PORT = process.env.PORT || 3000;
@@ -6,6 +7,7 @@ var _ = require("underscore");
 var db = require("./db.js");
 var todos = [];
 var todoNextId = 1;
+
 
 app.use(bodyParser.json());
 
@@ -152,11 +154,11 @@ app.put('/todos/:id', (req, res) => {
 
 
 app.post('/users', (req,res) => {
-  var user = _.pick(req.body, "email", "password");
-  db.user.create(user)
+  var body = _.pick(req.body, "email", "password");
+  db.user.create(body)
     .then(
-      () => {
-        res.json(user.toJSON());
+      (user) => {
+        res.json(user.toPublicJSON());
       },
       (error) => {
         res.status(400).json(error);
@@ -164,7 +166,18 @@ app.post('/users', (req,res) => {
   );
 });
 
-db.sequelize.sync().then(() => {
+app.post('/users/login', (req,res) => {
+  var fields = _.pick(req.body, 'email', 'password');
+  db.user.authenticate(fields)
+    .then(
+      (user) =>  { res.json(user.toPublicJSON()) },
+      (error) => { res.status(401).json(error);}
+    );
+});
+
+db.sequelize.sync(
+  { force: true} // forces database to re-establish itself and wipe all data
+).then(() => {
   app.listen(PORT, () => {
     console.log(`express is listening on port ${PORT}`);
   });
