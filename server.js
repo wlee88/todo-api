@@ -173,7 +173,7 @@ app.put('/todos/:id', middleware.requireAuthentication, (req, res) => {
 
 });
 
-
+//POST /users
 app.post('/users', (req,res) => {
   var body = _.pick(req.body, "email", "password");
   db.user.create(body)
@@ -187,21 +187,34 @@ app.post('/users', (req,res) => {
   );
 });
 
+//POST /users/login
 app.post('/users/login', (req,res) => {
   var fields = _.pick(req.body, 'email', 'password');
+  var userInstance;
   db.user.authenticate(fields)
     .then(
       (user) =>  {
         var token =  user.generateToken('authentication');
-        if (token) {
-          res.header('Auth',token).json(user.toPublicJSON());
-        } else {
-          res.status(401).send();
-        };
-      },
-      (error) => { res.status(401).json(error);}
-    );
+        userInstance = user;
+        // res.header('Auth', token).json(userInstance.toPublicJSON());
+        return db.token.create({
+          token: token
+        });
+
+      }
+    )
+    .then((tokenInstance) => {
+      res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+    })
+    .catch((error) => { res.send(401).json(error)})
 });
+
+app.delete('/users/login', middleware.requireAuthentication, (req,res) => {
+  req.token.destroy().then(() => {
+    res.status(204).send();
+  })
+  .catch(() => { res.status(500).send() });
+})
 
 db.sequelize.sync(
   { force: true} // forces database to re-establish itself and wipe all data
