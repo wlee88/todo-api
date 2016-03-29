@@ -16,6 +16,11 @@ var db = {};
 
 db.todo = sequelize.import(`${__dirname}/model/todo.js`);
 db.user = sequelize.import(`${__dirname}/model/user.js`);
+
+//associations
+db.todo.belongsTo(db.user);
+db.user.hasMany(db.todo);
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

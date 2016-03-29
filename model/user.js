@@ -75,11 +75,8 @@ module.exports = function(sequelize, DataTypes) {
               }
             })
             .then(
-
               (user) => {
-
                 if (!user || !bcrypt.compareSync(body.password, user.get('password_hash'))) {
-                  console.log("password is wrong");
                   return reject();
                 };
                 resolve(user);
